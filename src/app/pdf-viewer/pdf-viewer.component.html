@@ -4,8 +4,8 @@
 
   <div class="annotations" *ngIf="showAnnotations">
     <div class="annotation-card" *ngIf="activeAnnotation" #annotationCardContent [ngStyle]="{
-        top: annotationCardCoordinates.positionY * zoom + 8 + 'px',
-        left: annotationCardCoordinates.positionX * zoom + offsetLeft + 'px' }">
+        top: annotationCardCoordinates.positionY - (invertTriangle  ? annotationCardContent.offsetHeight + 60 : 0) * zoom + 8 + 'px',
+        left: annotationCardCoordinates.positionX * zoom + offsetLeft + 'px' }" (resized)="detectChangesOnResize()">
       <div class="triangle-container" [ngClass]="{ invert: invertTriangle}"
         [ngStyle]="{ left: 100 + (invertTriangle ? 25 : 0) + annotationCardOffset + 'px'}">
         <div class="triangle-shadow"></div>

@@ -5,7 +5,7 @@ import { NgModule } from '@angular/core'
 
 import { PdfViewerComponent } from './pdf-viewer.component'
 import { PagerComponent } from './pager/pager.component'
-
+import { AngularResizedEventModule } from 'angular-resize-event'
 import { PDFJSStatic } from 'pdfjs-dist'
 import { CommonModule } from '@angular/common'
 import { MatIconModule } from '@angular/material/icon'
@@ -33,6 +33,7 @@ export {
     MatIconModule,
     OverlayModule,
     MatProgressSpinnerModule,
+    AngularResizedEventModule,
   ],
   declarations: [PdfViewerComponent, PagerComponent],
   exports: [PdfViewerComponent],

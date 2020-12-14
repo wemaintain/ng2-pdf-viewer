@@ -98,7 +98,7 @@ export class PdfViewerComponent
       : null
   private _renderText = true
   private _renderTextMode: RenderTextMode = RenderTextMode.ENABLED
-  private _stickToPage = true
+  private _stickToPage = false
   private _originalSize = true
   private _pdf: PDFDocumentProxy | null
   private _page = 1
@@ -131,12 +131,10 @@ export class PdfViewerComponent
   @Output() errored = new EventEmitter<any>()
   @Output() progressChange = new EventEmitter<PDFProgressData>()
   @Output() pageChange: EventEmitter<number> = new EventEmitter<number>(true)
-  @Output() annotationCardOpened: EventEmitter<
-    TextSelection
-  > = new EventEmitter<TextSelection>()
-  @Output() annotationEdit: EventEmitter<Annotation> = new EventEmitter<
-    Annotation
-  >()
+  @Output()
+  annotationCardOpened: EventEmitter<TextSelection> = new EventEmitter<TextSelection>()
+  @Output()
+  annotationEdit: EventEmitter<Annotation> = new EventEmitter<Annotation>()
   @Output() annotationCardClosed: EventEmitter<void> = new EventEmitter<void>()
 
   /** PDF source */
@@ -150,6 +148,10 @@ export class PdfViewerComponent
   /** Currently active annotation  */
   @Input()
   activeAnnotation: Annotation
+
+  /** Position of the annotation card */
+  @Input()
+  cardPosition: 'top' | 'bottom' = 'bottom'
 
   @Input('c-maps-url')
   set cMapsUrl(cMapsUrl: string) {
@@ -168,7 +170,7 @@ export class PdfViewerComponent
 
   @Input('original-size')
   set originalSize(originalSize: boolean) {
-    this._originalSize = originalSize
+    this._originalSize = true
   }
 
   @Input('show-all')
@@ -410,6 +412,7 @@ export class PdfViewerComponent
       : this.pdfSinglePageFindController
   }
 
+  /** Logic when page has changed */
   public pageChanged(page: number): void {
     this.page = page
 
@@ -428,6 +431,7 @@ export class PdfViewerComponent
     this.annotationCardOpened.emit(textSelection)
   }
 
+  /** Update size of the PDF Viewer */
   public updateSize() {
     const currentViewer = this.getCurrentViewer()
     ;(this._pdf as PDFDocumentProxy)
@@ -458,6 +462,7 @@ export class PdfViewerComponent
       })
   }
 
+  /** Clear and reset pdf viewer */
   public clear() {
     if (this.loadingTask && !this.loadingTask.destroyed) {
       this.loadingTask.destroy()
@@ -477,17 +482,29 @@ export class PdfViewerComponent
     }
   }
 
-  public editAnnotation(annotation: Annotation): void {
-    const el = document.getElementById(annotation.index.toString())
-    el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  public detectChangesOnResize(): void {
+    this.cd.markForCheck()
+  }
 
+  /** Emit event when an annotation has been clicked */
+  public editAnnotation(annotation: Annotation): void {
     this.calculateCardPosition({
       positionX: annotation.positionX,
       positionY: annotation.positionY,
     })
+
+    const el = document.getElementById(
+      annotation?.index?.toString() as string
+    ) as HTMLElement
+    el?.scrollIntoView({
+      block: 'center',
+      behavior: 'smooth',
+    })
+
     this.annotationEdit.emit(annotation)
   }
 
+  /** Setup Multipage viewer */
   private setupMultiPageViewer() {
     ;(PDFJS as any).disableTextLayer = !this._renderText
 
@@ -542,6 +559,7 @@ export class PdfViewerComponent
     this.pdfMultiPageFindController.setDocument(this._pdf)
   }
 
+  /** Setup single page viewer */
   private setupSinglePageViewer() {
     ;(PDFJS as any).disableTextLayer = !this._renderText
 
@@ -602,6 +620,7 @@ export class PdfViewerComponent
     return page
   }
 
+  /** Get document params */
   private getDocumentParams() {
     const srcType = typeof this.src
 
@@ -667,6 +686,7 @@ export class PdfViewerComponent
     )
   }
 
+  /** Actions on update */
   private update() {
     this.page = this._page
 
@@ -674,6 +694,7 @@ export class PdfViewerComponent
     this.cd.markForCheck()
   }
 
+  /** Render PDF */
   private render() {
     this._page = this.getValidPageNumber(this._page)
     const currentViewer = this.getCurrentViewer()
@@ -696,6 +717,10 @@ export class PdfViewerComponent
     this.updateSize()
   }
 
+  /** Get current scale used
+   * @param { number }
+   * @param { number }
+   */
   private getScale(viewportWidth: number, viewportHeight: number) {
     const borderSize = this._showBorders
       ? 2 * PdfViewerComponent.BORDER_WIDTH
@@ -734,10 +759,12 @@ export class PdfViewerComponent
     return (this._zoom * ratio) / PdfViewerComponent.CSS_UNITS
   }
 
+  /** Get current viewer type */
   private getCurrentViewer(): any {
     return this._showAll ? this.pdfMultiPageViewer : this.pdfSinglePageViewer
   }
 
+  /** Resets document values to default */
   private resetPdfDocument() {
     this.pdfFindController.setDocument(this._pdf)
 
@@ -756,6 +783,7 @@ export class PdfViewerComponent
     }
   }
 
+  /** Handles behavior when selecting text */
   private handleTextSelection(): void {
     document
       .querySelector('.pdfViewer')
@@ -765,12 +793,15 @@ export class PdfViewerComponent
         const textSelection = selection.toString()
 
         if (!this.activeAnnotation) {
-          const scrollOffset = this.pdfViewerContainer.nativeElement.scrollTop
-          const scrollLeft = document.querySelector('.pdf-viewer-container')
-            .scrollLeft
+          const scrollTop = this.pdfViewerContainer.nativeElement.scrollTop
+          const offsetTop = this.pdfViewerContainer.nativeElement.parentElement
+            .parentElement.offsetTop
+          const scrollLeft = this.pdfViewerContainer.nativeElement.scrollLeft
 
           const position = {
-            positionY: Math.round((event.pageY - 6 + scrollOffset) / this.zoom),
+            positionY: Math.round(
+              (event.pageY - 6 - offsetTop + scrollTop) / this.zoom
+            ),
             positionX: Math.round(
               (event.pageX - 120 - this.offsetLeft + scrollLeft) / this.zoom
             ),
@@ -785,18 +816,23 @@ export class PdfViewerComponent
           })
 
           this.pdfViewerContainer.nativeElement.scroll({
-            top: (position.positionY - 360) * this.zoom,
+            top:
+              (position.positionY - (this.invertTriangle ? 500 : 360)) *
+              this.zoom,
             behavior: 'smooth',
           })
         }
       })
   }
 
+  /** Calculate xy position of card
+   * @param { Coordinates }
+   */
   private calculateCardPosition(position: Coordinates): void {
     let adjustedPosition
 
-    const scrollLeft = document.querySelector('.pdf-viewer-container')
-      .scrollLeft
+    const offsetTop = this.pdfViewerContainer.nativeElement.scrollTop
+    const scrollLeft = this.pdfViewerContainer.nativeElement.scrollLeft
 
     const offsetRight =
       this.pdfViewerContainer.nativeElement.offsetWidth -
@@ -833,13 +869,11 @@ export class PdfViewerComponent
       this.annotationCardOffset = 0
     }
 
-    if (offsetBottom < 360) {
+    if (
+      offsetBottom < 360 ||
+      (this.cardPosition === 'top' && position.positionY > 400)
+    ) {
       this.invertTriangle = true
-
-      adjustedPosition = {
-        ...adjustedPosition,
-        positionY: adjustedPosition.positionY - 425,
-      }
     } else {
       this.invertTriangle = false
     }

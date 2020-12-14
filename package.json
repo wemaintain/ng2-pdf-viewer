@@ -1,6 +1,6 @@
 {
   "name": "@wemaintain/pdf-viewer",
-  "version": "1.0.14",
+  "version": "1.0.16",
   "description": "Angular component for rendering PDF",
   "license": "MIT",
   "scripts": {
@@ -14,7 +14,7 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "packagr": "ng-packagr -p package.json",
-    "publish": "npm run packagr && cd dist && npm publish",
+    "publish": "npm run packagr && cd dist && npm publish && cd ..",
     "docs": "ng build --prod --output-path docs --base-href ng2-pdf-viewer && cp ./docs/index.html ./docs/404.html"
   },
   "private": false,
@@ -39,6 +39,7 @@
   "homepage": "https://github.com/VadimDez/ng2-pdf-viewer#readme",
   "dependencies": {
     "@types/pdfjs-dist": "^2.1.5",
+    "angular-resize-event": "^2.0.1",
     "pdfjs-dist": "^2.4.456",
     "tslib": "^1.10.0"
   },
