@@ -1,0 +1,26 @@
+<mat-spinner [diameter]="36" [strokeWidth]="4" *ngIf="pdfLoading"></mat-spinner>
+<div #pdfViewerContainer class="pdf-viewer-container" [ngClass]="{ 'loading' : pdfLoading }">
+  <div class="pdfViewer"></div>
+
+  <div class="annotations" *ngIf="showAnnotations">
+    <div class="annotation-card" *ngIf="activeAnnotation" #annotationCardContent [ngStyle]="{
+        top: annotationCardCoordinates.positionY - (invertTriangle  ? annotationCardContent.offsetHeight + 60 : 0) * zoom + 8 + 'px',
+        left: annotationCardCoordinates.positionX * zoom + offsetLeft + 'px' }" (resized)="detectChangesOnResize()">
+      <div class="triangle-container" [ngClass]="{ invert: invertTriangle}"
+        [ngStyle]="{ left: 100 + (invertTriangle ? 25 : 0) + annotationCardOffset + 'px'}">
+        <div class="triangle-shadow"></div>
+        <div class="triangle"></div>
+      </div>
+      <ng-content select=".annotation-card-content"></ng-content>
+    </div>
+
+    <div *ngFor="let annotation of annotations" [ngStyle]="{
+          top: annotation.positionY * zoom + 'px',
+          left: annotation.positionX * zoom + offsetLeft + 'px'
+        }" class="annotation" [id]="annotation.index" (click)="editAnnotation(annotation)">
+      {{ annotation.index + 1 }}</div>
+  </div>
+
+</div>
+<app-pager [page]="page" (pageChange)="pageChanged($event)" [numPages]="numPages" [zoom]="zoom"
+  (zoomChange)="zoomChanged($event)" *ngIf="!pdfLoading"></app-pager>
