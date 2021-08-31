@@ -1,15 +1,13 @@
-import { NgModule } from '@angular/core';
-import {
-  MatButtonModule,
-  MatFormFieldModule,
-  MatInputModule,
-  MatSlideToggleModule,
-  MatToolbarModule,
-  MatSidenavModule,
-  MatTooltipModule,
-  MatOptionModule,
-  MatSelectModule
-} from '@angular/material';
+import { NgModule } from '@angular/core'
+import { MatButtonModule } from '@angular/material/button'
+import { MatInputModule } from '@angular/material/input'
+import { MatFormFieldModule } from '@angular/material/form-field'
+import { MatSlideToggleModule } from '@angular/material/slide-toggle'
+import { MatSelectModule } from '@angular/material/select'
+import { MatToolbarModule } from '@angular/material/toolbar'
+import { MatSidenavModule } from '@angular/material/sidenav'
+import { MatTooltipModule } from '@angular/material/tooltip'
+import { MatOptionModule } from '@angular/material/core'
 
 @NgModule({
   imports: [
@@ -21,7 +19,7 @@ import {
     MatOptionModule,
     MatToolbarModule,
     MatSidenavModule,
-    MatTooltipModule
+    MatTooltipModule,
   ],
   exports: [
     MatButtonModule,
@@ -32,7 +30,7 @@ import {
     MatOptionModule,
     MatToolbarModule,
     MatSidenavModule,
-    MatTooltipModule
-  ]
+    MatTooltipModule,
+  ],
 })
 export class DemoMaterialModule {}
